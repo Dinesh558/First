@@ -1,0 +1,61 @@
+---
+- hosts: db
+  vars:
+   - software_list : ['httpd','telnet']
+   - test : 'dinesh'
+  tasks:
+   - name: ping
+     action: ping
+
+
+   - name: uninstall httpd
+     yum:
+       name: '{{ item }}'
+       state: absent
+     with_items:
+       - 'httpd'
+       - 'telnet'
+
+   - name: Looping over user defined variabla and installing telnet and httpd
+     yum:
+      name: '{{ item }}'
+      state: present
+     with_items:
+      - '{{ software_list }}'
+
+   - name: starting a service
+     service:
+         name: httpd
+         state: started
+         enabled: yes
+
+   - name: httpd.conf
+     template:
+      src: templates/httpd.j2
+      dest: /etc/httpd/conf/httpd.conf
+     when:
+       - ansible_user_id == "root"
+     notify:
+       - Restart httpd handler
+
+   - name: mul ping
+     action: ping
+
+   - action: ping
+  
+   - name:
+     shell: cat passwd
+     args:
+       chdir: "/etc/"
+     register: var
+
+
+   - debug:
+       msg: ' {{ var }} '
+
+  handlers:
+     - name: Restart httpd handler
+       service:
+          name: httpd
+          state: restarted
+
